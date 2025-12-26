@@ -117,20 +117,34 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 userSchema.methods.setOTP = async function (otp) {
   const salt = await bcrypt.genSalt(10);
   this.otp = await bcrypt.hash(otp, salt);
-  this.otpExpire = Date.now() + parseInt(process.env.OTP_EXPIRE_MINUTES || 5) * 60 * 1000;
+  // Default to 10 minutes if not set
+  const expireMinutes = parseInt(process.env.OTP_EXPIRE_MINUTES || '10');
+  this.otpExpire = Date.now() + expireMinutes * 60 * 1000;
+  console.log(`OTP set for ${this.email}, expires in ${expireMinutes} minutes at ${new Date(this.otpExpire).toISOString()}`);
 };
 
 // Verify OTP
 userSchema.methods.verifyOTP = async function (enteredOTP) {
+  console.log(`Verifying OTP for ${this.email}`);
+  console.log(`Has OTP: ${!!this.otp}, Has Expire: ${!!this.otpExpire}`);
+
   if (!this.otp || !this.otpExpire) {
+    console.log('OTP verification failed: No OTP or expiry set');
     return false;
   }
 
-  if (Date.now() > this.otpExpire) {
+  const now = Date.now();
+  const expireTime = new Date(this.otpExpire).getTime();
+  console.log(`Current time: ${now}, Expire time: ${expireTime}, Expired: ${now > expireTime}`);
+
+  if (now > expireTime) {
+    console.log('OTP verification failed: OTP expired');
     return false; // OTP expired
   }
 
-  return await bcrypt.compare(enteredOTP, this.otp);
+  const isMatch = await bcrypt.compare(enteredOTP, this.otp);
+  console.log(`OTP comparison result: ${isMatch}`);
+  return isMatch;
 };
 
 // Clear OTP fields
