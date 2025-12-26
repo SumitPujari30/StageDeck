@@ -1,13 +1,23 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { API_BASE_URL, API_TIMEOUT, TOKEN_KEY } from '@/utils/constants';
+import { API_TIMEOUT, TOKEN_KEY } from '@/utils/constants';
 
 /**
  * API client configuration
  */
 
+// Determine base URL - always use relative URLs in production (Vercel)
+const getBaseURL = (): string => {
+  // In production, use empty string for relative URLs (same-origin API)
+  if (import.meta.env.PROD) {
+    return '';
+  }
+  // In development, use localhost
+  return 'http://localhost:5000';
+};
+
 // Create axios instance
 const api: AxiosInstance = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: getBaseURL(),
   timeout: API_TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
