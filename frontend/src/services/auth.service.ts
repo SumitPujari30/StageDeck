@@ -201,9 +201,8 @@ class AuthService {
 
   async resendUserOTP(email: string): Promise<ApiResponse> {
     try {
-      const response = await api.post<ApiResponse>('/api/auth/register', {
+      const response = await api.post<ApiResponse>('/api/auth/resend-otp', {
         email,
-        // Send only email to trigger OTP resend for existing unverified user
       });
       return response.data;
     } catch (error) {

@@ -9,6 +9,7 @@ import {
   requestAdminOTP,
   verifyAdminOTP,
   verifyUserRegistrationOTP,
+  resendUserOTP,
 } from '../controllers/authController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -17,6 +18,7 @@ const router = express.Router();
 // User routes
 router.post('/register', register);
 router.post('/verify-user-otp', verifyUserRegistrationOTP);
+router.post('/resend-otp', resendUserOTP);
 router.post('/login', login);
 router.get('/me', protect, getMe);
 

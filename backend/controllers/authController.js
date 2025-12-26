@@ -578,3 +578,90 @@ export const resetPassword = async (req, res) => {
     });
   }
 };
+
+// @desc    Resend OTP for user registration
+// @route   POST /api/auth/resend-otp
+// @access  Public
+export const resendUserOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required',
+      });
+    }
+
+    const user = await User.findOne({ email }).select('+otp +otpExpire');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found. Please register first.',
+      });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email already verified. Please login.',
+      });
+    }
+
+    // Generate new OTP
+    const otp = generateOTP();
+    await user.setOTP(otp);
+    await user.save();
+
+    // Send OTP email
+    await sendEmail({
+      email: user.email,
+      subject: '🎉 StageDeck - New Verification Code',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .otp-box { background: white; border: 2px dashed #6366f1; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; color: #6366f1; margin: 20px 0; border-radius: 8px; letter-spacing: 5px; }
+            .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🎭 StageDeck</h1>
+              <p>New Verification Code</p>
+            </div>
+            <div class="content">
+              <h2>Hello ${user.name},</h2>
+              <p>Here's your new verification code:</p>
+              <div class="otp-box">${otp}</div>
+              <p><strong>This OTP will expire in ${process.env.OTP_EXPIRE_MINUTES || 10} minutes.</strong></p>
+              <p>If you didn't request this, please ignore this email.</p>
+              <p>Best regards,<br>The StageDeck Team</p>
+            </div>
+            <div class="footer">
+              <p>© 2025 StageDeck. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    });
+
+    res.json({
+      success: true,
+      message: 'New OTP sent to your email.',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

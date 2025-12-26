@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import authService, { User } from '@/services/auth.service';
-import type { 
-  UserLoginInput, 
-  UserRegisterInput, 
-  AdminLoginInput, 
-  AdminRegisterInput 
+import type {
+  UserLoginInput,
+  UserRegisterInput,
+  AdminLoginInput,
+  AdminRegisterInput
 } from '@/utils/validators';
 
 /**
@@ -44,7 +44,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Check for existing session on mount
   useEffect(() => {
     const initAuth = async () => {
@@ -61,20 +61,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsLoading(false);
       }
     };
-    
+
     initAuth();
   }, []);
-  
+
   const login = async (data: UserLoginInput) => {
     const response = await authService.loginUser(data);
     setUser(response.user);
   };
-  
+
   const loginAdmin = async (data: AdminLoginInput) => {
     const response = await authService.loginAdmin(data);
     setUser(response.user);
   };
-  
+
   const register = async (data: UserRegisterInput) => {
     const response = await authService.registerUser(data);
     // Check if OTP verification is needed
@@ -84,39 +84,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(response.user);
     return { needsVerification: false };
   };
-  
+
   const registerAdmin = async (data: AdminRegisterInput) => {
     await authService.requestAdminOTP(data);
     // Store admin data temporarily for OTP verification
     sessionStorage.setItem('pendingAdminData', JSON.stringify(data));
     return { needsOTP: true };
   };
-  
+
   const verifyAdminOTP = async (email: string, otp: string) => {
     const response = await authService.verifyAdminOTP(email, otp);
-    if (response.verified) {
-      // Get the pending admin data
-      const pendingData = sessionStorage.getItem('pendingAdminData');
-      if (pendingData) {
-        const adminData = JSON.parse(pendingData) as AdminRegisterInput;
-        // Now complete the registration
-        const authResponse = await authService.registerAdmin(adminData);
-        setUser(authResponse.user);
-        sessionStorage.removeItem('pendingAdminData');
-      }
+    // Backend returns { success: true, token, user } directly
+    if (response.success && response.user) {
+      setUser(response.user);
+      sessionStorage.removeItem('pendingAdminData');
+    } else if (response.token && response.user) {
+      // Fallback for token-based response
+      setUser(response.user);
+      sessionStorage.removeItem('pendingAdminData');
     }
   };
-  
+
   const verifyUserOTP = async (email: string, otp: string) => {
     const response = await authService.verifyUserOTP(email, otp);
     setUser(response.user);
   };
-  
+
   const logout = () => {
     authService.logout();
     setUser(null);
   };
-  
+
   const refreshUser = async () => {
     try {
       const currentUser = await authService.getCurrentUser();
@@ -134,7 +132,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('stagedeck_user', JSON.stringify(userData));
     }
   };
-  
+
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
@@ -150,6 +148,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     refreshUser,
     updateUser,
   };
-  
+
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
