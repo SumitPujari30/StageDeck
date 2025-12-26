@@ -3,24 +3,19 @@ import { motion } from 'framer-motion';
 import {
   Plus,
   Search,
-  Filter,
   Edit,
   Trash2,
-  Eye,
-  Copy,
   Star,
   Calendar,
   MapPin,
   Users,
-  TrendingUp,
-  CheckCircle,
   AlertTriangle,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
-import { Skeleton, SkeletonTable } from '@/components/ui/Skeleton';
+import { SkeletonTable } from '@/components/ui/Skeleton';
 import { Modal, ModalContent, ModalHeader, ModalTitle, ModalFooter } from '@/components/ui/Modal';
 import { CreateEventWizard } from '@/components/admin/CreateEventWizard';
 import { EditEventModal } from '@/components/admin/EditEventModal';

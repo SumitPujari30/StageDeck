@@ -1,32 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Shield, ArrowLeft, RefreshCw } from 'lucide-react';
+import { Mail, ArrowLeft, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { OTPInput } from '@/components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
-
-import authService from '@/services/auth.service';
+import { useAuth } from '@/hooks/useAuth';
 
 /**
- * Admin OTP verification page
+ * User OTP verification page
  */
 
-export const AdminVerifyOTP: React.FC = () => {
+export const UserVerifyOTP: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { verifyUserOTP } = useAuth();
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
+  const [isResending, setIsResending] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(600); // 10 minutes
   
-  const email = location.state?.email || '';
+  const email = location.state?.email || sessionStorage.getItem('pendingUserEmail') || '';
   
   useEffect(() => {
     if (!email) {
-      navigate('/auth/admin/register');
+      navigate('/auth/user/register');
       return;
     }
+    
+    // Store email in sessionStorage as backup
+    sessionStorage.setItem('pendingUserEmail', email);
     
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
@@ -57,24 +61,16 @@ export const AdminVerifyOTP: React.FC = () => {
       setError('');
       setIsVerifying(true);
       
-      // Verify OTP
-      const response = await authService.verifyAdminOTP(email, otp);
+      // Verify OTP - this will automatically log in the user
+      await verifyUserOTP(email, otp);
       
-      if (response.verified) {
-        // Get the pending admin data
-        const pendingData = sessionStorage.getItem('pendingAdminData');
-        if (pendingData) {
-          // const adminData = JSON.parse(pendingData);
-          // Complete registration (in a real app, this would be another API call)
-          // For now, redirect to login
-          sessionStorage.removeItem('pendingAdminData');
-          navigate('/auth/admin/login', {
-            state: { message: 'Admin account created successfully! Please login.' }
-          });
-        }
-      }
+      // Clear the pending email
+      sessionStorage.removeItem('pendingUserEmail');
+      
+      // Navigate to dashboard
+      navigate('/user/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Invalid OTP');
+      setError(err.message || 'Invalid OTP. Please try again.');
     } finally {
       setIsVerifying(false);
     }
@@ -83,20 +79,33 @@ export const AdminVerifyOTP: React.FC = () => {
   const handleResend = async () => {
     try {
       setError('');
-      const pendingData = sessionStorage.getItem('pendingAdminData');
-      if (pendingData) {
-        const adminData = JSON.parse(pendingData);
-        await authService.requestAdminOTP(adminData);
-        setTimeLeft(300);
-        setOtp('');
+      setIsResending(true);
+      
+      // Import authService dynamically to avoid circular dependency
+      const { default: authService } = await import('@/services/auth.service');
+      
+      // Resend OTP by calling register again with the same email
+      await authService.resendUserOTP(email);
+      
+      setTimeLeft(600);
+      setOtp('');
+      setError('');
+      
+      // Show success message briefly
+      const successDiv = document.getElementById('success-message');
+      if (successDiv) {
+        successDiv.classList.remove('hidden');
+        setTimeout(() => successDiv.classList.add('hidden'), 3000);
       }
     } catch (err: any) {
       setError(err.message || 'Failed to resend OTP');
+    } finally {
+      setIsResending(false);
     }
   };
   
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-pink-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-secondary-50 p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -105,22 +114,27 @@ export const AdminVerifyOTP: React.FC = () => {
       >
         <Card className="shadow-soft-lg">
           <CardHeader className="space-y-1 text-center">
-            <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white mb-4">
-              <Shield className="w-8 h-8" />
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white mb-4">
+              <Mail className="w-8 h-8" />
             </div>
-            <CardTitle className="text-2xl font-bold">Verify OTP</CardTitle>
+            <CardTitle className="text-2xl font-bold">Verify Your Email</CardTitle>
             <CardDescription>
-              Enter the 6-digit code sent to the admin email
+              Enter the 6-digit code sent to your email
             </CardDescription>
           </CardHeader>
           
           <CardContent className="space-y-6">
             {/* Email display */}
-            <div className="p-4 rounded-xl bg-purple-50 border border-purple-200 text-center">
-              <p className="text-sm text-purple-700 mb-1">OTP sent to:</p>
-              <p className="text-sm font-mono font-bold text-purple-900">
-                ADMIN
+            <div className="p-4 rounded-xl bg-primary-50 border border-primary-200 text-center">
+              <p className="text-sm text-primary-700 mb-1">OTP sent to:</p>
+              <p className="text-sm font-mono font-bold text-primary-900 break-all">
+                {email}
               </p>
+            </div>
+            
+            {/* Success message */}
+            <div id="success-message" className="hidden p-3 rounded-lg bg-green-50 text-green-600 text-sm text-center">
+              OTP resent successfully! Check your email.
             </div>
             
             {error && (
@@ -144,7 +158,7 @@ export const AdminVerifyOTP: React.FC = () => {
               {timeLeft > 0 ? (
                 <p className="text-sm text-gray-600">
                   Code expires in{' '}
-                  <span className="font-semibold text-purple-600">
+                  <span className="font-semibold text-primary-600">
                     {formatTime(timeLeft)}
                   </span>
                 </p>
@@ -165,7 +179,7 @@ export const AdminVerifyOTP: React.FC = () => {
                 loading={isVerifying}
                 disabled={otp.length !== 6 || timeLeft === 0}
               >
-                Verify & Create Account
+                Verify & Continue
               </Button>
               
               <Button
@@ -173,13 +187,17 @@ export const AdminVerifyOTP: React.FC = () => {
                 variant="outline"
                 className="w-full"
                 disabled={timeLeft > 0}
+                loading={isResending}
                 leftIcon={<RefreshCw className="w-4 h-4" />}
               >
-                Resend OTP
+                {timeLeft > 0 ? `Resend in ${formatTime(timeLeft)}` : 'Resend OTP'}
               </Button>
               
               <Button
-                onClick={() => navigate('/auth/admin/register')}
+                onClick={() => {
+                  sessionStorage.removeItem('pendingUserEmail');
+                  navigate('/auth/user/register');
+                }}
                 variant="ghost"
                 className="w-full"
                 leftIcon={<ArrowLeft className="w-4 h-4" />}
@@ -191,7 +209,7 @@ export const AdminVerifyOTP: React.FC = () => {
             {/* Info */}
             <div className="text-center">
               <p className="text-xs text-gray-500">
-                Didn't receive the code? Check your spam folder or contact support.
+                Didn't receive the code? Check your spam folder.
               </p>
             </div>
           </CardContent>

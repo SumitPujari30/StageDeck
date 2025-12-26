@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Upload, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 interface ImageUploadProps {
@@ -17,9 +17,8 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   onImageRemove,
   currentImage,
   maxSize = 5,
-  aspectRatio = '1:1',
   label = 'Upload Image',
-  showCrop = false,
+
 }) => {
   const [preview, setPreview] = useState<string | null>(currentImage || null);
   const [uploading, setUploading] = useState(false);

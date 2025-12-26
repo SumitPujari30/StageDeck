@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+
 import {
   Calendar,
   MapPin,
@@ -7,17 +7,17 @@ import {
   Users,
   Save,
   Sparkles,
-  Image as ImageIcon,
+
   Star,
   Clock,
 } from 'lucide-react';
 import { Modal, ModalContent, ModalHeader, ModalTitle, ModalFooter } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Badge } from '@/components/ui/Badge';
+
 import { ImageUpload } from '@/components/common/ImageUpload';
 import { useAIAdmin } from '@/hooks/useAIAdmin';
-import { Event } from '@/services/events.service';
+import eventsService, { Event } from '@/services/events.service';
 
 interface EditEventModalProps {
   open: boolean;
@@ -113,7 +113,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
       let imageUrl = imagePreview;
       if (imageFile) {
         // Upload image to server
-        // imageUrl = await uploadImage(imageFile);
+        imageUrl = await eventsService.uploadEventImage(imageFile);
       }
 
       const updatedData: Partial<Event> = {

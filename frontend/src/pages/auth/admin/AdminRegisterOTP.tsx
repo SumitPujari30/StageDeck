@@ -85,9 +85,7 @@ export const AdminRegisterOTP: React.FC = () => {
                       <p className="text-xs text-amber-700">
                         An OTP will be sent to the admin confirmation email:
                       </p>
-                      <p className="text-xs font-mono font-bold text-amber-900 bg-amber-100 px-2 py-1 rounded inline-block">
-                        {ADMIN_CONFIRM_EMAIL}
-                      </p>
+                      
                     </div>
                   </div>
                 </div>

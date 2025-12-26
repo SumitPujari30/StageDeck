@@ -1,26 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Calendar,
-  Clock,
+
   MapPin,
   Ticket,
   Download,
   X,
-  Filter,
+
   Search,
   QrCode,
-  FileText,
-  TrendingUp,
+
+
+
   Grid,
   List,
-  ChevronDown,
+
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
-import { Skeleton, SkeletonTable } from '@/components/ui/Skeleton';
+import { SkeletonTable } from '@/components/ui/Skeleton';
 import { Modal, ModalContent, ModalHeader, ModalTitle, ModalFooter } from '@/components/ui/Modal';
 import eventsService, { Booking } from '@/services/events.service';
 import { formatDate, formatCurrency } from '@/utils/format';
@@ -63,7 +64,7 @@ export const Bookings: React.FC = () => {
     if (searchQuery) {
       filtered = filtered.filter(
         (b) =>
-          b.event?.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          b.eventId?.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           b._id.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
@@ -94,8 +95,8 @@ export const Bookings: React.FC = () => {
   const downloadTicket = (booking: Booking) => {
     const ticketData = {
       bookingId: booking._id,
-      event: booking.event?.title,
-      date: booking.event?.date,
+      event: booking.eventId?.title,
+      date: booking.eventId?.date,
       tickets: booking.tickets,
       totalAmount: booking.totalAmount,
     };
@@ -242,16 +243,16 @@ export const Bookings: React.FC = () => {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg text-gray-900 mb-2">
-                        {booking.event?.title || 'Event'}
+                        {booking.eventId?.title || 'Event'}
                       </h3>
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                           <Calendar className="w-4 h-4" />
-                          {booking.event?.date ? formatDate(booking.event.date) : 'TBD'}
+                          {booking.eventId?.date ? formatDate(booking.eventId.date) : 'TBD'}
                         </div>
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                           <MapPin className="w-4 h-4" />
-                          {booking.event?.location || 'TBD'}
+                          {booking.eventId?.location || 'TBD'}
                         </div>
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                           <Ticket className="w-4 h-4" />
@@ -340,12 +341,12 @@ export const Bookings: React.FC = () => {
                     <tr key={booking._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4">
                         <div>
-                          <p className="font-medium text-gray-900">{booking.event?.title || 'Event'}</p>
-                          <p className="text-sm text-gray-500">{booking.event?.location}</p>
+                          <p className="font-medium text-gray-900">{booking.eventId?.title || 'Event'}</p>
+                          <p className="text-sm text-gray-500">{booking.eventId?.location}</p>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
-                        {booking.event?.date ? formatDate(booking.event.date) : 'TBD'}
+                        {booking.eventId?.date ? formatDate(booking.eventId.date) : 'TBD'}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">{booking.tickets}</td>
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">
@@ -414,7 +415,7 @@ export const Bookings: React.FC = () => {
               <div className="text-center">
                 <QrCode className="w-32 h-32 mx-auto mb-4 text-gray-400" />
                 <p className="text-sm text-gray-600">QR Code for</p>
-                <p className="font-semibold">{selectedBooking?.event?.title}</p>
+                <p className="font-semibold">{selectedBooking?.eventId?.title}</p>
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-2">Booking ID: {selectedBooking?._id}</p>
@@ -434,7 +435,7 @@ export const Bookings: React.FC = () => {
           </ModalHeader>
           <div className="py-4">
             <p className="text-gray-600">Are you sure you want to cancel this booking?</p>
-            <p className="font-semibold mt-2">{selectedBooking?.event?.title}</p>
+            <p className="font-semibold mt-2">{selectedBooking?.eventId?.title}</p>
             <p className="text-sm text-gray-500 mt-1">
               {selectedBooking?.tickets} ticket{selectedBooking?.tickets !== 1 ? 's' : ''} •{' '}
               {formatCurrency(selectedBooking?.totalAmount || 0)}

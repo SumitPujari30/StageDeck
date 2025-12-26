@@ -6,7 +6,7 @@ import User from '../models/User.js';
 export const getAllUsers = async (req, res) => {
   try {
     const { status, role } = req.query;
-    
+
     const filter = {};
     if (status) filter.approvalStatus = status;
     if (role) filter.role = role;
@@ -34,9 +34,9 @@ export const getAllUsers = async (req, res) => {
 // @access  Private/Admin
 export const getPendingUsers = async (req, res) => {
   try {
-    const users = await User.find({ 
+    const users = await User.find({
       approvalStatus: 'pending',
-      role: 'user' 
+      role: 'user'
     })
       .select('-password -otp -otpExpire')
       .sort({ createdAt: -1 });
@@ -251,13 +251,14 @@ export const updateProfile = async (req, res) => {
     }
 
     // Update allowed fields
-    const { name, phone, department, interests, profileImage } = req.body;
-    
+    const { name, phone, department, interests, profileImage, avatar } = req.body;
+
     if (name) user.name = name;
     if (phone) user.phone = phone;
     if (department) user.department = department;
     if (interests) user.interests = interests;
     if (profileImage) user.profileImage = profileImage;
+    if (avatar) user.avatar = avatar;
 
     await user.save();
 
@@ -272,6 +273,7 @@ export const updateProfile = async (req, res) => {
         department: user.department,
         interests: user.interests,
         profileImage: user.profileImage,
+        avatar: user.avatar,
         role: user.role,
       },
     });

@@ -16,7 +16,7 @@ import {
   Trophy,
   ArrowUp,
   ArrowDown,
-  User as UserIcon,
+
   Edit,
   Camera,
 } from 'lucide-react';
@@ -28,7 +28,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { Avatar } from '@/components/ui/Avatar';
 import { LineChart } from '@/components/dashboard/charts/LineChart';
 import { PieChart } from '@/components/dashboard/charts/PieChart';
-import { BarChart } from '@/components/dashboard/charts/BarChart';
+
 import { AdminProfileModal, AdminProfileData } from '@/components/admin/AdminProfileModal';
 import { useAIAdmin } from '@/hooks/useAIAdmin';
 import { useAuth } from '@/hooks/useAuth';
@@ -36,7 +36,7 @@ import eventsService from '@/services/events.service';
 import { formatCurrency, formatDate } from '@/utils/format';
 
 export const AdminDashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -60,6 +60,13 @@ export const AdminDashboard: React.FC = () => {
     fetchDashboardData();
     fetchAIInsights();
   }, []);
+
+  // Initialize avatar from user object
+  useEffect(() => {
+    if (user?.avatar) {
+      setAdminAvatar(user.avatar);
+    }
+  }, [user]);
 
   const fetchDashboardData = async () => {
     try {
@@ -126,14 +133,54 @@ export const AdminDashboard: React.FC = () => {
     setRefreshing(false);
   };
 
+
   const handleSaveProfile = async (data: AdminProfileData) => {
     try {
-      // TODO: API call to update admin profile
       console.log('Saving admin profile:', data);
-      if (data.avatarPreview) {
-        setAdminAvatar(data.avatarPreview);
+      
+      let avatarData: string | undefined;
+      
+      // Convert avatar File to base64 if present
+      if (data.avatar) {
+        avatarData = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(data.avatar as File);
+        });
+      } else if (data.avatarPreview) {
+        // Use existing preview if no new file
+        avatarData = data.avatarPreview;
       }
-      alert('Profile updated successfully!');
+
+      // Save to database via API
+      const api = await import('@/services/api').then(m => m.default);
+      const response = await api.put('/api/users/profile', {
+        name: data.name,
+        phone: data.phone,
+        department: data.department,
+        avatar: avatarData
+      });
+
+      if (response.data.success) {
+        const updatedUser = {
+          ...user!,
+          name: data.name,
+          phone: data.phone,
+          department: data.department,
+          avatar: avatarData
+        };
+
+        // Update local avatar state
+        if (avatarData) {
+          setAdminAvatar(avatarData);
+        }
+
+        // Update auth context
+        updateUser(updatedUser);
+
+        alert('Profile updated successfully!');
+      }
     } catch (error) {
       console.error('Failed to save profile:', error);
       throw error;

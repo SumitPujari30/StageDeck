@@ -33,22 +33,29 @@ api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
-    
+
     // Handle 401 Unauthorized
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      
-      // Clear auth data and redirect to login
-      localStorage.removeItem(TOKEN_KEY);
-      
-      // Check if we're on an admin route
-      const isAdminRoute = window.location.pathname.startsWith('/admin');
-      const loginRoute = isAdminRoute ? '/auth/admin/login' : '/auth/user/login';
-      
-      // Redirect to appropriate login page
-      window.location.href = loginRoute;
+
+      // Don't redirect if this is a login/register request - let the component handle the error
+      const isAuthEndpoint = originalRequest.url?.includes('/auth/login') ||
+        originalRequest.url?.includes('/auth/register') ||
+        originalRequest.url?.includes('/auth/verify-otp');
+
+      if (!isAuthEndpoint) {
+        // Clear auth data and redirect to login
+        localStorage.removeItem(TOKEN_KEY);
+
+        // Check if we're on an admin route
+        const isAdminRoute = window.location.pathname.startsWith('/admin');
+        const loginRoute = isAdminRoute ? '/auth/admin/login' : '/auth/user/login';
+
+        // Redirect to appropriate login page
+        window.location.href = loginRoute;
+      }
     }
-    
+
     return Promise.reject(error);
   }
 );

@@ -1,4 +1,4 @@
-import api, { ApiResponse, PaginatedResponse, handleApiError } from './api';
+import api, { ApiResponse, handleApiError } from './api';
 import type { EventInput } from '@/utils/validators';
 
 /**
@@ -37,18 +37,29 @@ export interface EventFilters {
 
 export interface Booking {
   _id: string;
-  eventId: string;
-  event?: Event;
-  userId: string;
-  user?: {
+  eventId: {
+    _id: string;
+    title: string;
+    description?: string;
+    date: string;
+    time: string;
+    location: string;
+    category: string;
+    image?: string;
+    price?: number;
+    status: string;
+  };
+  userId: {
+    _id: string;
     name: string;
     email: string;
   };
   tickets: number;
   totalAmount: number;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
-  paymentId?: string;
+  status: 'confirmed' | 'pending' | 'cancelled' | 'completed';
+  paymentMethod?: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface EventStats {
@@ -72,24 +83,24 @@ class EventsService {
   async getEvents(filters?: EventFilters): Promise<Event[]> {
     try {
       const params = new URLSearchParams();
-      
+
       if (filters?.category) params.append('category', filters.category);
       if (filters?.status) params.append('status', filters.status);
       if (filters?.search) params.append('search', filters.search);
       if (filters?.featured !== undefined) params.append('featured', filters.featured.toString());
       if (filters?.startDate) params.append('startDate', filters.startDate);
       if (filters?.endDate) params.append('endDate', filters.endDate);
-      
+
       const response = await api.get<{ success: boolean; events: Event[] }>(
         `/api/events?${params.toString()}`
       );
-      
+
       return response.data.events || [];
     } catch (error) {
       throw new Error(handleApiError(error));
     }
   }
-  
+
   // Get single event
   async getEvent(id: string): Promise<Event> {
     try {
@@ -99,7 +110,7 @@ class EventsService {
       throw new Error(handleApiError(error));
     }
   }
-  
+
   // Create event (protected)
   async createEvent(data: EventInput): Promise<Event> {
     try {
@@ -109,7 +120,7 @@ class EventsService {
       throw new Error(handleApiError(error));
     }
   }
-  
+
   // Update event (protected)
   async updateEvent(id: string, data: Partial<EventInput>): Promise<Event> {
     try {
@@ -119,7 +130,7 @@ class EventsService {
       throw new Error(handleApiError(error));
     }
   }
-  
+
   // Delete event (protected)
   async deleteEvent(id: string): Promise<ApiResponse> {
     try {
@@ -129,7 +140,7 @@ class EventsService {
       throw new Error(handleApiError(error));
     }
   }
-  
+
   // Get my events (protected)
   async getMyEvents(): Promise<Event[]> {
     try {
@@ -139,7 +150,7 @@ class EventsService {
       throw new Error(handleApiError(error));
     }
   }
-  
+
   // Toggle featured status (admin only)
   async toggleFeatured(id: string): Promise<Event> {
     try {
@@ -151,7 +162,7 @@ class EventsService {
       throw new Error(handleApiError(error));
     }
   }
-  
+
   // Update event status (admin only)
   async updateEventStatus(id: string, status: Event['status']): Promise<Event> {
     try {
@@ -164,7 +175,7 @@ class EventsService {
       throw new Error(handleApiError(error));
     }
   }
-  
+
   // Book event tickets
   async bookEvent(eventId: string, tickets: number): Promise<Booking> {
     try {
@@ -177,7 +188,7 @@ class EventsService {
       throw new Error(handleApiError(error));
     }
   }
-  
+
   // Get user bookings
   async getUserBookings(): Promise<Booking[]> {
     try {
@@ -187,7 +198,7 @@ class EventsService {
       throw new Error(handleApiError(error));
     }
   }
-  
+
   // Get all bookings (admin)
   async getAllBookings(): Promise<Booking[]> {
     try {
@@ -197,7 +208,7 @@ class EventsService {
       throw new Error(handleApiError(error));
     }
   }
-  
+
   // Cancel booking
   async cancelBooking(bookingId: string): Promise<ApiResponse> {
     try {
@@ -207,7 +218,7 @@ class EventsService {
       throw new Error(handleApiError(error));
     }
   }
-  
+
   // Get event statistics (admin)
   async getEventStats(): Promise<EventStats> {
     try {
@@ -219,7 +230,7 @@ class EventsService {
       return this.getMockStats();
     }
   }
-  
+
   // Mock stats for development
   private getMockStats(): EventStats {
     return {
@@ -254,13 +265,13 @@ class EventsService {
       ],
     };
   }
-  
+
   // Upload event image
   async uploadEventImage(file: File): Promise<string> {
     try {
       const formData = new FormData();
       formData.append('image', file);
-      
+
       const response = await api.post<{ success: boolean; url: string }>(
         '/api/upload/event-image',
         formData,
@@ -270,34 +281,43 @@ class EventsService {
           },
         }
       );
-      
+
+      console.log('Image upload successful:', response.data);
       return response.data.url;
-    } catch (error) {
-      // If upload endpoint doesn't exist, return a placeholder
-      console.warn('Upload endpoint not available, using placeholder');
-      return `https://via.placeholder.com/800x400?text=${encodeURIComponent(file.name)}`;
+    } catch (error: any) {
+      // Log the actual error for debugging
+      console.error('Image upload failed:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+
+      // Throw the error instead of falling back to placeholder
+      throw new Error(
+        error.response?.data?.message ||
+        error.message ||
+        'Failed to upload image'
+      );
     }
   }
-  
+
   // Export bookings as CSV (client-side)
   exportBookingsCSV(bookings: Booking[]): void {
     const headers = ['Booking ID', 'Event', 'User', 'Email', 'Tickets', 'Amount', 'Status', 'Date'];
     const rows = bookings.map(booking => [
       booking._id,
-      booking.event?.title || 'N/A',
-      booking.user?.name || 'N/A',
-      booking.user?.email || 'N/A',
+      booking.eventId?.title || 'N/A',
+      booking.userId?.name || 'N/A',
+      booking.userId?.email || 'N/A',
       booking.tickets.toString(),
       `$${booking.totalAmount.toFixed(2)}`,
       booking.status,
       new Date(booking.createdAt).toLocaleDateString(),
     ]);
-    
+
     const csvContent = [
       headers.join(','),
       ...rows.map(row => row.map(cell => `"${cell}"`).join(',')),
     ].join('\n');
-    
+
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');

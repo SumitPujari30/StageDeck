@@ -11,19 +11,21 @@ import {
   Users,
   Activity,
   Award,
-  Bell,
-  Zap,
+
+
   Camera,
   Edit,
+  Sparkles,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useAI } from '@/hooks/useAI';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
 import { NotificationPanel, Notification } from '@/components/ui/NotificationPanel';
-import { BadgeCard, mockBadges } from '@/components/ui/BadgeSystem';
+import { mockBadges } from '@/components/ui/BadgeSystem';
 import { UserProfileModal, UserProfileData } from '@/components/user/UserProfileModal';
 import eventsService, { Event, Booking } from '@/services/events.service';
 import { formatDate, formatCurrency } from '@/utils/format';
@@ -45,9 +47,11 @@ interface ActivityItem {
 }
 
 export const Dashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
+  const { getRecommendations, loading: _aiLoading } = useAI();
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [userAvatar, setUserAvatar] = useState<string>('');
+  const [recommendations, setRecommendations] = useState<any[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
     totalBookings: 0,
     upcomingEvents: 0,
@@ -88,7 +92,22 @@ export const Dashboard: React.FC = () => {
   useEffect(() => {
     fetchDashboardData();
     generateActivityTimeline();
+    fetchRecommendations();
   }, []);
+
+  // Initialize avatar from user object
+  useEffect(() => {
+    if (user?.avatar) {
+      setUserAvatar(user.avatar);
+    }
+  }, [user]);
+
+  const fetchRecommendations = async () => {
+    const result = await getRecommendations(['Technology', 'Music']); // Mock interests
+    if (result.success && result.data) {
+      setRecommendations(result.data);
+    }
+  };
   
   const fetchDashboardData = async () => {
     try {
@@ -102,10 +121,10 @@ export const Dashboard: React.FC = () => {
       
       const now = new Date();
       const upcoming = bookings.filter(b => 
-        b.event && new Date(b.event.date) > now
+        b.eventId && new Date(b.eventId.date) > now
       ).length;
       const attended = bookings.filter(b => 
-        b.event && new Date(b.event.date) <= now
+        b.eventId && new Date(b.eventId.date) <= now
       ).length;
       const total = bookings.reduce((sum, b) => sum + b.totalAmount, 0);
       
@@ -176,11 +195,26 @@ export const Dashboard: React.FC = () => {
 
   const handleSaveProfile = async (data: UserProfileData) => {
     try {
-      // TODO: API call to update user profile
       console.log('Saving user profile:', data);
-      if (data.avatarPreview) {
-        setUserAvatar(data.avatarPreview);
+      
+      // Use auth service to update profile
+      // We pass the file object if it exists, otherwise just the data
+      const updatedUser = await import('@/services/auth.service').then(m => m.default.updateProfile({
+        ...user,
+        name: data.name,
+        email: data.email,
+        // Map other fields as needed, for now we just store them in local storage mock
+        avatar: data.avatar
+      }));
+
+      // Update local state
+      if (updatedUser.avatar) {
+        setUserAvatar(updatedUser.avatar);
       }
+      
+      // Update auth context
+      updateUser(updatedUser);
+
       alert('Profile updated successfully!');
     } catch (error) {
       console.error('Failed to save profile:', error);
@@ -282,6 +316,43 @@ export const Dashboard: React.FC = () => {
         <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32" />
         <div className="absolute left-0 bottom-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24" />
       </motion.div>
+
+      {/* AI Recommendations */}
+      {recommendations.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-100">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-purple-900">
+                <Sparkles className="w-5 h-5 text-purple-600" />
+                Recommended for You
+                <Badge variant="secondary" className="bg-purple-100 text-purple-700 hover:bg-purple-200">
+                  AI Powered
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {recommendations.map((rec) => (
+                  <div key={rec.id} className="bg-white p-4 rounded-lg border border-purple-100 shadow-sm flex justify-between items-center">
+                    <div>
+                      <h4 className="font-semibold text-gray-900">{rec.title}</h4>
+                      <p className="text-sm text-purple-600">{rec.reason}</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-purple-600">{rec.matchScore}%</div>
+                      <div className="text-xs text-gray-500">Match</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
       
       {/* Stats Grid with Trends */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -336,7 +407,7 @@ export const Dashboard: React.FC = () => {
                     >
                       <div className="flex-1">
                         <p className="font-medium text-gray-900">
-                          {booking.event?.title || 'Event'}
+                          {booking.eventId?.title || 'Event'}
                         </p>
                         <p className="text-sm text-gray-500">
                           {booking.tickets} ticket{booking.tickets > 1 ? 's' : ''} • {formatDate(booking.createdAt)}

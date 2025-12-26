@@ -5,39 +5,30 @@ import {
   Lock,
   Bell,
   Palette,
-  Globe,
   Shield,
-  Mail,
   Database,
-  Zap,
-  Users,
-  CreditCard,
-  AlertCircle,
   Save,
   Moon,
   Sun,
-  Eye,
-  EyeOff,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Badge } from '@/components/ui/Badge';
+
 import { Modal, ModalContent, ModalHeader, ModalTitle, ModalFooter } from '@/components/ui/Modal';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
+
 import { Progress } from '@/components/ui/Progress';
 
-type SettingsTab = 'general' | 'security' | 'notifications' | 'appearance' | 'platform' | 'integrations';
-
+type SettingsTab = 'general' | 'security' | 'notifications' | 'appearance' | 'platform';
 export const Settings: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+
   const [saving, setSaving] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   // General Settings
   const [generalSettings, setGeneralSettings] = useState({
@@ -90,18 +81,7 @@ export const Settings: React.FC = () => {
     allowedFileTypes: 'jpg,png,pdf',
   });
 
-  // Integration Settings
-  const [integrationSettings, setIntegrationSettings] = useState({
-    geminiApiKey: '',
-    razorpayKeyId: '',
-    razorpayKeySecret: '',
-    stripePublishableKey: '',
-    stripeSecretKey: '',
-    smtpHost: '',
-    smtpPort: '587',
-    smtpUser: '',
-    smtpPassword: '',
-  });
+
 
   const tabs = [
     { id: 'general' as const, label: 'General', icon: SettingsIcon },
@@ -109,7 +89,6 @@ export const Settings: React.FC = () => {
     { id: 'notifications' as const, label: 'Notifications', icon: Bell },
     { id: 'appearance' as const, label: 'Appearance', icon: Palette },
     { id: 'platform' as const, label: 'Platform', icon: Database },
-    { id: 'integrations' as const, label: 'Integrations', icon: Zap },
   ];
 
   const handleSaveSettings = async () => {
@@ -137,9 +116,7 @@ export const Settings: React.FC = () => {
     alert('Password changed successfully!');
   };
 
-  const handleTestEmail = async () => {
-    alert('Test email sent! Check your inbox.');
-  };
+
 
   return (
     <div className="space-y-6">
@@ -634,146 +611,6 @@ export const Settings: React.FC = () => {
                   onChange={(e) => setPlatformSettings({ ...platformSettings, maxFileSize: parseInt(e.target.value) })}
                 />
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Integration Settings */}
-      {activeTab === 'integrations' && (
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                <Zap className="w-5 h-5 inline mr-2" />
-                AI Integration (Google Gemini)
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Gemini API Key</label>
-                <div className="flex gap-2">
-                  <Input
-                    type={showPassword ? 'text' : 'password'}
-                    value={integrationSettings.geminiApiKey}
-                    onChange={(e) => setIntegrationSettings({ ...integrationSettings, geminiApiKey: e.target.value })}
-                    placeholder="Enter your Gemini API key"
-                  />
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                <CreditCard className="w-5 h-5 inline mr-2" />
-                Payment Gateways
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <h4 className="font-medium mb-3">Razorpay</h4>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Key ID</label>
-                    <Input
-                      value={integrationSettings.razorpayKeyId}
-                      onChange={(e) => setIntegrationSettings({ ...integrationSettings, razorpayKeyId: e.target.value })}
-                      placeholder="rzp_test_..."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Key Secret</label>
-                    <Input
-                      type="password"
-                      value={integrationSettings.razorpayKeySecret}
-                      onChange={(e) => setIntegrationSettings({ ...integrationSettings, razorpayKeySecret: e.target.value })}
-                      placeholder="••••••••••••"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t">
-                <h4 className="font-medium mb-3">Stripe</h4>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Publishable Key</label>
-                    <Input
-                      value={integrationSettings.stripePublishableKey}
-                      onChange={(e) => setIntegrationSettings({ ...integrationSettings, stripePublishableKey: e.target.value })}
-                      placeholder="pk_test_..."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Secret Key</label>
-                    <Input
-                      type="password"
-                      value={integrationSettings.stripeSecretKey}
-                      onChange={(e) => setIntegrationSettings({ ...integrationSettings, stripeSecretKey: e.target.value })}
-                      placeholder="sk_test_..."
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                <Mail className="w-5 h-5 inline mr-2" />
-                Email Configuration (SMTP)
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Host</label>
-                  <Input
-                    value={integrationSettings.smtpHost}
-                    onChange={(e) => setIntegrationSettings({ ...integrationSettings, smtpHost: e.target.value })}
-                    placeholder="smtp.gmail.com"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Port</label>
-                  <Input
-                    value={integrationSettings.smtpPort}
-                    onChange={(e) => setIntegrationSettings({ ...integrationSettings, smtpPort: e.target.value })}
-                    placeholder="587"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">SMTP User</label>
-                <Input
-                  type="email"
-                  value={integrationSettings.smtpUser}
-                  onChange={(e) => setIntegrationSettings({ ...integrationSettings, smtpUser: e.target.value })}
-                  placeholder="your-email@gmail.com"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Password</label>
-                <Input
-                  type="password"
-                  value={integrationSettings.smtpPassword}
-                  onChange={(e) => setIntegrationSettings({ ...integrationSettings, smtpPassword: e.target.value })}
-                  placeholder="••••••••••••"
-                />
-              </div>
-              <Button variant="outline" onClick={handleTestEmail}>
-                <Mail className="w-4 h-4 mr-2" />
-                Send Test Email
-              </Button>
             </CardContent>
           </Card>
         </div>

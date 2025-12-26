@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { PieChart as RechartsPie, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { motion } from 'framer-motion';
 
@@ -44,7 +44,7 @@ export const PieChart: React.FC<PieChartProps> = ({
             paddingAngle={2}
             label={(entry) => `${entry[nameKey]}: ${entry[dataKey]}`}
           >
-            {data.map((entry, index) => (
+            {data.map((_, index) => (
               <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
             ))}
           </Pie>

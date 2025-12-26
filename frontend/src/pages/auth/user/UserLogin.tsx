@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,7 +17,7 @@ import { userLoginSchema, type UserLoginInput } from '@/utils/validators';
 export const UserLogin: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, isAuthenticated, isAdmin } = useAuth();
   const [error, setError] = useState('');
   
   const from = location.state?.from?.pathname || '/user/dashboard';
@@ -29,6 +29,14 @@ export const UserLogin: React.FC = () => {
   } = useForm<UserLoginInput>({
     resolver: zodResolver(userLoginSchema),
   });
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      const redirectPath = isAdmin ? '/admin/dashboard' : '/user/dashboard';
+      navigate(redirectPath, { replace: true });
+    }
+  }, [isAuthenticated, isAdmin, navigate]);
   
   const onSubmit = async (data: UserLoginInput) => {
     try {
@@ -36,7 +44,17 @@ export const UserLogin: React.FC = () => {
       await login(data);
       navigate(from, { replace: true });
     } catch (err: any) {
-      setError(err.message || 'Invalid email or password');
+      // Check if the error is due to unverified email
+      const errorMessage = err.message || 'Invalid email or password';
+      
+      if (errorMessage.includes('verify your email') || errorMessage.includes('verification')) {
+        // Navigate to OTP verification page
+        navigate('/auth/user/verify-otp', {
+          state: { email: data.email }
+        });
+      } else {
+        setError(errorMessage);
+      }
     }
   };
   

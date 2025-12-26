@@ -8,6 +8,7 @@ import { PrivateRoute } from '@/components/guards/PrivateRoute';
 const LandingHome = lazy(() => import('./landing/LandingHome').then(m => ({ default: m.LandingHome })));
 const UserLogin = lazy(() => import('./auth/user/UserLogin').then(m => ({ default: m.UserLogin })));
 const UserRegister = lazy(() => import('./auth/user/UserRegister').then(m => ({ default: m.UserRegister })));
+const UserVerifyOTP = lazy(() => import('./auth/user/UserVerifyOTP').then(m => ({ default: m.UserVerifyOTP })));
 const AdminLogin = lazy(() => import('./auth/admin/AdminLogin').then(m => ({ default: m.AdminLogin })));
 const AdminRegisterOTP = lazy(() => import('./auth/admin/AdminRegisterOTP').then(m => ({ default: m.AdminRegisterOTP })));
 const AdminVerifyOTP = lazy(() => import('./auth/admin/AdminVerifyOTP').then(m => ({ default: m.AdminVerifyOTP })));
@@ -49,6 +50,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="/" element={<LandingHome />} />
         <Route path="/auth/user/login" element={<UserLogin />} />
         <Route path="/auth/user/register" element={<UserRegister />} />
+        <Route path="/auth/user/verify-otp" element={<UserVerifyOTP />} />
         <Route path="/auth/admin/login" element={<AdminLogin />} />
         <Route path="/auth/admin/register" element={<AdminRegisterOTP />} />
         <Route path="/auth/admin/verify-otp" element={<AdminVerifyOTP />} />

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+
 import {
   User,
   Mail,
@@ -57,6 +57,13 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
     website: '',
     occupation: '',
   });
+
+  // Initialize avatar from user data
+  useEffect(() => {
+    if (user?.avatar) {
+      setAvatarPreview(user.avatar);
+    }
+  }, [user]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

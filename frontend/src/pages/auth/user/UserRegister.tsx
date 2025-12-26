@@ -35,8 +35,18 @@ export const UserRegister: React.FC = () => {
   const onSubmit = async (data: UserRegisterInput) => {
     try {
       setError('');
-      await registerUser(data);
-      navigate('/user/dashboard');
+      const result = await registerUser(data);
+      
+      // Check if OTP verification is needed
+      if (result.needsVerification) {
+        // Navigate to OTP verification page with email
+        navigate('/auth/user/verify-otp', {
+          state: { email: result.email || data.email }
+        });
+      } else {
+        // If for some reason no verification is needed, go to dashboard
+        navigate('/user/dashboard');
+      }
     } catch (err: any) {
       setError(err.message || 'Registration failed');
     }

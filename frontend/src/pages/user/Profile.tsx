@@ -36,10 +36,10 @@ import { BadgeSystem, mockBadges } from '@/components/ui/BadgeSystem';
 import { Progress } from '@/components/ui/Progress';
 import { Modal, ModalContent, ModalHeader, ModalTitle, ModalFooter } from '@/components/ui/Modal';
 import eventsService from '@/services/events.service';
-import { formatDate } from '@/utils/format';
+import api from '@/services/api';
 
 export const Profile: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -93,6 +93,13 @@ export const Profile: React.FC = () => {
   });
 
   useEffect(() => {
+    // Initialize avatar preview from user data
+    if (user?.avatar) {
+      setAvatarPreview(user.avatar);
+    }
+  }, [user]);
+
+  useEffect(() => {
     fetchUserStats();
   }, []);
 
@@ -100,7 +107,7 @@ export const Profile: React.FC = () => {
     try {
       const bookings = await eventsService.getUserBookings();
       const now = new Date();
-      const attended = bookings.filter(b => b.event && new Date(b.event.date) <= now).length;
+      const attended = bookings.filter(b => b.eventId && new Date(b.eventId.date) <= now).length;
       const total = bookings.reduce((sum, b) => sum + b.totalAmount, 0);
 
       setUserStats({
@@ -130,7 +137,7 @@ export const Profile: React.FC = () => {
     }
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
@@ -144,8 +151,29 @@ export const Profile: React.FC = () => {
       
       setAvatarFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result as string);
+      reader.onloadend = async () => {
+        const avatarData = reader.result as string;
+        setAvatarPreview(avatarData);
+        
+        // Save avatar to database immediately using API service
+        try {
+          const response = await api.put('/api/users/profile', {
+            avatar: avatarData
+          });
+          
+          if (response.data.success) {
+            // Update auth context with new avatar
+            if (user) {
+              updateUser({ ...user, avatar: avatarData });
+            }
+            console.log('Avatar saved successfully');
+          } else {
+            throw new Error('Failed to save avatar');
+          }
+        } catch (error) {
+          console.error('Failed to save avatar:', error);
+          alert('Failed to save avatar to database');
+        }
       };
       reader.readAsDataURL(file);
     }

@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Search,
-  Filter,
+
   Grid,
   List,
   Calendar,
   MapPin,
-  Ticket,
+
   Star,
   Users,
-  Clock,
-  TrendingUp,
+
+
   Heart,
-  Share2,
+
   Sparkles,
   ArrowRight,
 } from 'lucide-react';
@@ -22,7 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
-import { Skeleton, SkeletonCard } from '@/components/ui/Skeleton';
+import { SkeletonCard } from '@/components/ui/Skeleton';
 import { ShareButton } from '@/components/ui/ShareButton';
 import eventsService, { Event } from '@/services/events.service';
 import { formatDate, formatCurrency } from '@/utils/format';
@@ -48,7 +48,7 @@ export const Events: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState<'date' | 'price' | 'popular'>('date');
-  const [showFilters, setShowFilters] = useState(false);
+
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [comparison, setComparison] = useState<Set<string>>(new Set());
   const [aiRecommendations, setAiRecommendations] = useState<Event[]>([]);
@@ -140,12 +140,25 @@ export const Events: React.FC = () => {
       <Card className="overflow-hidden hover:shadow-xl transition-all duration-300">
         <div className="relative h-48 bg-gradient-to-br from-primary-100 to-secondary-100">
           {event.image ? (
-            <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
+            <img 
+              src={event.image} 
+              alt={event.title} 
+              className="w-full h-full object-cover"
+              crossOrigin="anonymous"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.parentElement!.querySelector('.fallback-icon')?.classList.remove('hidden');
+              }}
+            />
+          ) : null}
+          {!event.image && (
+            <div className="fallback-icon w-full h-full flex items-center justify-center">
               <Calendar className="w-16 h-16 text-primary-600 opacity-50" />
             </div>
           )}
+          <div className="fallback-icon hidden w-full h-full flex items-center justify-center absolute inset-0">
+            <Calendar className="w-16 h-16 text-primary-600 opacity-50" />
+          </div>
           {event.isFeatured && (
             <div className="absolute top-3 left-3">
               <Badge variant="default" className="bg-yellow-500 text-white">
@@ -351,7 +364,7 @@ export const Events: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {aiRecommendations.map((event, index) => (
+              {aiRecommendations.map((event) => (
                 <Link key={event._id} to={`/user/events/${event._id}`}>
                   <div className="p-4 bg-white rounded-lg hover:shadow-md transition-shadow">
                     <h4 className="font-semibold text-gray-900 mb-2">{event.title}</h4>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,7 +17,7 @@ import { adminLoginSchema, type AdminLoginInput } from '@/utils/validators';
 export const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { loginAdmin } = useAuth();
+  const { loginAdmin, isAuthenticated, isAdmin } = useAuth();
   const [error, setError] = useState('');
   
   const from = location.state?.from?.pathname || '/admin/dashboard';
@@ -30,6 +30,14 @@ export const AdminLogin: React.FC = () => {
   } = useForm<AdminLoginInput>({
     resolver: zodResolver(adminLoginSchema),
   });
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      const redirectPath = isAdmin ? '/admin/dashboard' : '/user/dashboard';
+      navigate(redirectPath, { replace: true });
+    }
+  }, [isAuthenticated, isAdmin, navigate]);
   
   const onSubmit = async (data: AdminLoginInput) => {
     try {

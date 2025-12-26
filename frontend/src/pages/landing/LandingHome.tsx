@@ -54,53 +54,6 @@ const features = [
   },
 ];
 
-const pricingPlans = [
-  {
-    name: 'Free',
-    price: '$0',
-    period: 'forever',
-    features: [
-      'Up to 3 events',
-      'Basic analytics',
-      'Email support',
-      '50 attendees per event',
-    ],
-    cta: 'Get Started',
-    variant: 'outline' as const,
-  },
-  {
-    name: 'Premium',
-    price: '$29',
-    period: 'per month',
-    features: [
-      'Unlimited events',
-      'Advanced analytics',
-      'Priority support',
-      'Unlimited attendees',
-      'Custom branding',
-      'Export data',
-    ],
-    cta: 'Start Free Trial',
-    variant: 'gradient' as const,
-    popular: true,
-  },
-  {
-    name: 'Enterprise',
-    price: 'Custom',
-    period: 'contact us',
-    features: [
-      'Everything in Premium',
-      'Dedicated account manager',
-      'Custom integrations',
-      'SLA guarantee',
-      'Advanced security',
-      'API access',
-    ],
-    cta: 'Contact Sales',
-    variant: 'outline' as const,
-  },
-];
-
 export const LandingHome: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
@@ -121,8 +74,8 @@ export const LandingHome: React.FC = () => {
               <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Features
               </a>
-              <a href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Pricing
+              <a href="#how-it-works" className="text-gray-600 hover:text-gray-900 transition-colors">
+                How It Works
               </a>
               <a href="#about" className="text-gray-600 hover:text-gray-900 transition-colors">
                 About
@@ -195,7 +148,7 @@ export const LandingHome: React.FC = () => {
             </div>
           </motion.div>
           
-          {/* Hero Image */}
+          {/* Hero Dashboard Mockup */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
@@ -205,11 +158,67 @@ export const LandingHome: React.FC = () => {
             <div className="relative mx-auto max-w-6xl">
               <div className="absolute inset-0 bg-gradient-to-r from-primary-200 to-secondary-200 blur-3xl opacity-30" />
               <Card className="relative overflow-hidden shadow-2xl">
-                <div className="aspect-video bg-gradient-to-br from-primary-100 to-secondary-100 flex items-center justify-center">
-                  <div className="text-center">
-                    <Calendar className="w-24 h-24 text-primary-500 mx-auto mb-4" />
-                    <p className="text-2xl font-semibold text-gray-700">Event Dashboard Preview</p>
-                    <p className="text-gray-500 mt-2">Your events, beautifully organized</p>
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-8">
+                  {/* Dashboard Header */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900">Featured Events</h3>
+                      <p className="text-gray-600">Discover amazing experiences</p>
+                    </div>
+                    <Badge variant="default" className="bg-gradient-to-r from-primary-500 to-secondary-500 text-white border-0">
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      Live
+                    </Badge>
+                  </div>
+                  
+                  {/* Event Cards Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {[
+                      { 
+                        title: 'Tech Conference 2024',
+                        category: 'Technology',
+                        date: 'Dec 15, 2024',
+                        attendees: '500+',
+                        gradient: 'from-blue-500 to-cyan-500'
+                      },
+                      { 
+                        title: 'Music Festival',
+                        category: 'Entertainment',
+                        date: 'Dec 20, 2024',
+                        attendees: '1000+',
+                        gradient: 'from-purple-500 to-pink-500'
+                      },
+                      { 
+                        title: 'Art Exhibition',
+                        category: 'Arts & Culture',
+                        date: 'Dec 25, 2024',
+                        attendees: '300+',
+                        gradient: 'from-orange-500 to-red-500'
+                      },
+                    ].map((event, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                      >
+                        <div className={`h-32 rounded-lg bg-gradient-to-br ${event.gradient} flex items-center justify-center mb-3`}>
+                          <Calendar className="w-12 h-12 text-white" />
+                        </div>
+                        <h4 className="font-semibold text-gray-900 mb-1">{event.title}</h4>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Badge variant="outline" className="text-xs">{event.category}</Badge>
+                        </div>
+                        <div className="flex items-center justify-between text-sm text-gray-600">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {event.date}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Users className="w-3 h-3" />
+                            {event.attendees}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </Card>
@@ -261,69 +270,123 @@ export const LandingHome: React.FC = () => {
         </div>
       </section>
       
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8">
+      {/* How It Works Section */}
+      <section id="how-it-works" className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Simple, Transparent Pricing
+              How It Works
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Choose the plan that fits your needs
+              Get started in minutes. It's that simple.
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {pricingPlans.map((plan, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className={plan.popular ? 'relative' : ''}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                    <Badge variant="default" className="shadow-lg">
-                      <Star className="w-3 h-3 mr-1" />
-                      Most Popular
-                    </Badge>
-                  </div>
-                )}
-                
-                <Card className={`h-full ${plan.popular ? 'border-primary-500 shadow-soft-lg' : ''}`}>
-                  <CardContent className="p-8">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                      {plan.name}
-                    </h3>
-                    <div className="mb-6">
-                      <span className="text-4xl font-bold">{plan.price}</span>
-                      <span className="text-gray-600 ml-2">/{plan.period}</span>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-6xl mx-auto">
+            {[
+              {
+                step: '1',
+                title: 'Create Account',
+                description: 'Sign up for free in seconds. No credit card required.',
+                icon: Users,
+                color: 'from-blue-500 to-cyan-500',
+              },
+              {
+                step: '2',
+                title: 'Browse Events',
+                description: 'Discover amazing events tailored to your interests.',
+                icon: Calendar,
+                color: 'from-purple-500 to-pink-500',
+              },
+              {
+                step: '3',
+                title: 'Book Tickets',
+                description: 'Secure your spot with just a few clicks.',
+                icon: Ticket,
+                color: 'from-orange-500 to-red-500',
+              },
+              {
+                step: '4',
+                title: 'Enjoy Event',
+                description: 'Show your digital ticket and experience the magic.',
+                icon: Star,
+                color: 'from-green-500 to-emerald-500',
+              },
+            ].map((step, index) => {
+              const Icon = step.icon;
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="relative"
+                >
+                  <Card className="h-full hover:shadow-soft-lg transition-shadow duration-300">
+                    <CardContent className="p-6 text-center">
+                      <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${step.color} flex items-center justify-center mx-auto mb-4`}>
+                        <Icon className="w-8 h-8 text-white" />
+                      </div>
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-bold text-sm">
+                        {step.step}
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                        {step.title}
+                      </h3>
+                      <p className="text-gray-600">
+                        {step.description}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-primary-500 to-secondary-500">
+        <div className="container mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-white mb-4">
+              Trusted by Thousands
+            </h2>
+            <p className="text-xl text-white/90 max-w-3xl mx-auto">
+              Join the growing community of event goers and organizers
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-6xl mx-auto">
+            {[
+              { number: '10K+', label: 'Active Users', icon: Users },
+              { number: '5K+', label: 'Events Hosted', icon: Calendar },
+              { number: '50K+', label: 'Tickets Sold', icon: Ticket },
+              { number: '4.9/5', label: 'Average Rating', icon: Star },
+            ].map((stat, index) => {
+              const Icon = stat.icon;
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="text-center"
+                >
+                  <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 hover:bg-white/20 transition-all duration-300">
+                    <Icon className="w-12 h-12 text-white mx-auto mb-4" />
+                    <div className="text-5xl font-bold text-white mb-2">
+                      {stat.number}
                     </div>
-                    
-                    <ul className="space-y-3 mb-8">
-                      {plan.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-2">
-                          <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                          <span className="text-gray-600">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    
-                    <Link to="/auth/user/register" className="block">
-                      <Button 
-                        className="w-full" 
-                        variant={plan.variant}
-                        size="lg"
-                      >
-                        {plan.cta}
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+                    <div className="text-white/90 font-medium">
+                      {stat.label}
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>

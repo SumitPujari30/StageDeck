@@ -2,24 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Search,
-  Filter,
   Download,
   Eye,
   QrCode,
-  FileText,
   Ticket,
-  TrendingUp,
-  DollarSign,
-  Users,
   Calendar,
   RefreshCw,
-  X,
+
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
-import { Skeleton, SkeletonTable } from '@/components/ui/Skeleton';
+import { SkeletonTable } from '@/components/ui/Skeleton';
 import { Modal, ModalContent, ModalHeader, ModalTitle, ModalFooter } from '@/components/ui/Modal';
 import eventsService, { Booking } from '@/services/events.service';
 import { formatDate, formatCurrency } from '@/utils/format';
@@ -28,20 +23,23 @@ import { cn } from '@/utils/cn';
 export const BookingsAdmin: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [eventFilter, setEventFilter] = useState<string>('all');
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchBookings();
+    fetchEvents();
   }, []);
 
   useEffect(() => {
     filterBookings();
-  }, [bookings, searchQuery, statusFilter]);
+  }, [bookings, searchQuery, statusFilter, eventFilter]);
 
   const fetchBookings = async () => {
     try {
@@ -55,9 +53,19 @@ export const BookingsAdmin: React.FC = () => {
     }
   };
 
+  const fetchEvents = async () => {
+    try {
+      const data = await eventsService.getEvents();
+      setEvents(data);
+    } catch (error) {
+      console.error('Failed to fetch events:', error);
+    }
+  };
+
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetchBookings();
+    await fetchEvents();
     setRefreshing(false);
   };
 
@@ -67,14 +75,18 @@ export const BookingsAdmin: React.FC = () => {
     if (searchQuery) {
       filtered = filtered.filter(
         (b) =>
-          b.event?.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          b.user?.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          b.eventId?.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          b.userId?.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
           b._id.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     if (statusFilter !== 'all') {
       filtered = filtered.filter((b) => b.status === statusFilter);
+    }
+
+    if (eventFilter !== 'all') {
+      filtered = filtered.filter((b) => b.eventId?._id === eventFilter);
     }
 
     setFilteredBookings(filtered);
@@ -100,6 +112,28 @@ export const BookingsAdmin: React.FC = () => {
     cancelled: bookings.filter((b) => b.status === 'cancelled').length,
     totalRevenue: bookings.reduce((sum, b) => sum + b.totalAmount, 0),
   };
+
+  // Get unique events and their participant counts
+  const eventStats = bookings.reduce((acc, booking) => {
+    if (booking.eventId) {
+      const eventId = booking.eventId._id;
+      if (!acc[eventId]) {
+        acc[eventId] = {
+          eventId,
+          title: booking.eventId.title,
+          participants: 0,
+          totalTickets: 0,
+          revenue: 0,
+        };
+      }
+      acc[eventId].participants += 1;
+      acc[eventId].totalTickets += booking.tickets;
+      acc[eventId].revenue += booking.totalAmount;
+    }
+    return acc;
+  }, {} as Record<string, { eventId: string; title: string; participants: number; totalTickets: number; revenue: number }>);
+
+  const eventList = Object.values(eventStats);
 
   return (
     <div className="space-y-6">
@@ -187,9 +221,55 @@ export const BookingsAdmin: React.FC = () => {
               <option value="cancelled">Cancelled</option>
               <option value="completed">Completed</option>
             </select>
+            <select
+              value={eventFilter}
+              onChange={(e) => setEventFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-w-[200px]"
+            >
+              <option value="all">All Events</option>
+              {events.map((event) => {
+                const eventStat = eventStats[event._id];
+                return (
+                  <option key={event._id} value={event._id}>
+                    {event.title} {eventStat ? `(${eventStat.participants} bookings)` : '(0 bookings)'}
+                  </option>
+                );
+              })}
+            </select>
           </div>
         </CardContent>
       </Card>
+
+      {/* Event Statistics */}
+      {eventFilter === 'all' && eventList.length > 0 && (
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Event Participant Statistics</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Event Name</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bookings</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Tickets</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Revenue</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {eventList.map((event) => (
+                    <tr key={event.eventId} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm text-gray-900">{event.title}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{event.participants}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{event.totalTickets}</td>
+                      <td className="px-4 py-3 text-sm font-medium text-green-600">{formatCurrency(event.revenue)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Bookings Table */}
       {loading ? (
@@ -231,14 +311,14 @@ export const BookingsAdmin: React.FC = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div>
-                          <p className="font-medium text-gray-900">{booking.event?.title || 'N/A'}</p>
-                          <p className="text-sm text-gray-500">{booking.event?.category}</p>
+                          <p className="font-medium text-gray-900">{booking.eventId?.title || 'N/A'}</p>
+                          <p className="text-sm text-gray-500">{booking.eventId?.category}</p>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{booking.user?.name || 'N/A'}</p>
-                          <p className="text-sm text-gray-500">{booking.user?.email}</p>
+                          <p className="text-sm font-medium text-gray-900">{booking.userId?.name || 'N/A'}</p>
+                          <p className="text-sm text-gray-500">{booking.userId?.email}</p>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
@@ -296,14 +376,14 @@ export const BookingsAdmin: React.FC = () => {
                 <h4 className="font-semibold text-gray-900 mb-3">Event Information</h4>
                 <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                   <p className="font-medium text-lg text-gray-900">
-                    {selectedBooking.event?.title}
+                    {selectedBooking.eventId?.title}
                   </p>
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Calendar className="w-4 h-4" />
-                    {selectedBooking.event?.date ? formatDate(selectedBooking.event.date) : 'TBD'}
+                    {selectedBooking.eventId?.date ? formatDate(selectedBooking.eventId.date) : 'TBD'}
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Badge variant="outline">{selectedBooking.event?.category}</Badge>
+                    <Badge variant="outline">{selectedBooking.eventId?.category}</Badge>
                   </div>
                 </div>
               </div>
@@ -312,8 +392,8 @@ export const BookingsAdmin: React.FC = () => {
               <div>
                 <h4 className="font-semibold text-gray-900 mb-3">User Information</h4>
                 <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                  <p className="font-medium text-gray-900">{selectedBooking.user?.name}</p>
-                  <p className="text-sm text-gray-600">{selectedBooking.user?.email}</p>
+                  <p className="font-medium text-gray-900">{selectedBooking.userId?.name}</p>
+                  <p className="text-sm text-gray-600">{selectedBooking.userId?.email}</p>
                 </div>
               </div>
 

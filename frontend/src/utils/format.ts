@@ -1,5 +1,5 @@
 import { format, parseISO, formatDistanceToNow } from 'date-fns';
-import { DATE_FORMAT, TIME_FORMAT, DATETIME_FORMAT } from './constants';
+import { DATE_FORMAT, DATETIME_FORMAT } from './constants';
 
 /**
  * Formatting utilities
@@ -74,11 +74,11 @@ export const formatPercentage = (value: number, decimals = 0): string => {
 // Format file size
 export const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 Bytes';
-  
+
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 };
 
@@ -92,12 +92,12 @@ export const truncateText = (text: string, maxLength: number, suffix = '...'): s
 export const formatPhoneNumber = (phone: string): string => {
   // Remove all non-digit characters
   const cleaned = phone.replace(/\D/g, '');
-  
+
   // Format as (XXX) XXX-XXXX for US numbers
   if (cleaned.length === 10) {
     return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
   }
-  
+
   // Return original if not a standard US number
   return phone;
 };
@@ -138,7 +138,7 @@ export const formatEventStatus = (status: string): {
     Cancelled: { label: 'Cancelled', color: 'red' },
     Completed: { label: 'Completed', color: 'green' },
   };
-  
+
   return statusMap[status] || { label: status, color: 'gray' };
 };
 
@@ -153,6 +153,6 @@ export const formatBookingStatus = (status: string): {
     cancelled: { label: 'Cancelled', color: 'red' },
     completed: { label: 'Completed', color: 'blue' },
   };
-  
+
   return statusMap[status.toLowerCase()] || { label: status, color: 'gray' };
 };

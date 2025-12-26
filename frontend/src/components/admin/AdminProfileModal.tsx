@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+
 import {
   User,
   Mail,
@@ -7,7 +7,7 @@ import {
   MapPin,
   Camera,
   Save,
-  X,
+
   Shield,
   Briefcase,
 } from 'lucide-react';
@@ -15,7 +15,7 @@ import { Modal, ModalContent, ModalHeader, ModalTitle, ModalFooter } from '@/com
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Avatar } from '@/components/ui/Avatar';
-import { ImageUpload } from '@/components/common/ImageUpload';
+
 import { useAuth } from '@/hooks/useAuth';
 
 interface AdminProfileModalProps {
@@ -56,15 +56,19 @@ export const AdminProfileModal: React.FC<AdminProfileModalProps> = ({
     department: 'Management',
   });
 
+  // Initialize avatar from user data
+  useEffect(() => {
+    if (user?.avatar) {
+      setAvatarPreview(user.avatar);
+    }
+  }, [user]);
+
   const handleImageSelect = (file: File, preview: string) => {
     setAvatarFile(file);
     setAvatarPreview(preview);
   };
 
-  const handleImageRemove = () => {
-    setAvatarFile(null);
-    setAvatarPreview('');
-  };
+
 
   const handleSave = async () => {
     setSaving(true);

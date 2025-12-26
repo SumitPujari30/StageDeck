@@ -27,9 +27,8 @@ export const useAIAdmin = () => {
       // For now, return mock data
       await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
 
-      const mockDescription = `Join us for an exciting ${eventData.category.toLowerCase()} event - "${eventData.title}"! This carefully curated experience promises to bring together enthusiasts and professionals for an unforgettable journey. ${
-        eventData.location ? `Located in the heart of ${eventData.location}, ` : ''
-      }this event features expert speakers, interactive sessions, and networking opportunities. Whether you're a beginner or an expert, you'll find value in our comprehensive program designed to inspire, educate, and connect. Don't miss this opportunity to be part of something extraordinary!`;
+      const mockDescription = `Join us for an exciting ${eventData.category.toLowerCase()} event - "${eventData.title}"! This carefully curated experience promises to bring together enthusiasts and professionals for an unforgettable journey. ${eventData.location ? `Located in the heart of ${eventData.location}, ` : ''
+        }this event features expert speakers, interactive sessions, and networking opportunities. Whether you're a beginner or an expert, you'll find value in our comprehensive program designed to inspire, educate, and connect. Don't miss this opportunity to be part of something extraordinary!`;
 
       setLoading(false);
       return {
@@ -49,7 +48,7 @@ export const useAIAdmin = () => {
   /**
    * Analyze feedback using sentiment analysis
    */
-  const analyzeFeedback = useCallback(async (feedbackList: any[]): Promise<AIResponse> => {
+  const analyzeFeedback = useCallback(async (_feedbackList: any[]): Promise<AIResponse> => {
     setLoading(true);
     setError(null);
 
@@ -92,7 +91,7 @@ export const useAIAdmin = () => {
   /**
    * Predict revenue trends
    */
-  const predictRevenueTrend = useCallback(async (salesData: any[]): Promise<AIResponse> => {
+  const predictRevenueTrend = useCallback(async (_salesData: any[]): Promise<AIResponse> => {
     setLoading(true);
     setError(null);
 
@@ -171,7 +170,7 @@ export const useAIAdmin = () => {
   /**
    * Generate AI insights for dashboard
    */
-  const generateDashboardInsights = useCallback(async (dashboardData: any): Promise<AIResponse> => {
+  const generateDashboardInsights = useCallback(async (_dashboardData: any): Promise<AIResponse> => {
     setLoading(true);
     setError(null);
 

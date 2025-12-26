@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, X, Check, Calendar, Ticket, TrendingUp, Info } from 'lucide-react';
 import { Button } from './Button';
-import { Badge } from './Badge';
+
 import { formatDate } from '@/utils/format';
 import { cn } from '@/utils/cn';
 

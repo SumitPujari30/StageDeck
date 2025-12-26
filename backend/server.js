@@ -17,6 +17,9 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import badgeRoutes from './routes/badgeRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
 import recommendationRoutes from './routes/recommendationRoutes.js';
+import bookingRoutes from './routes/bookingRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
+import chatRoutes from './routes/chatRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
 
 // Load env vars
@@ -33,9 +36,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Connect to database
 connectDB();
 
-// Body parser middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Body parser middleware with increased limit for base64 images
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Security middleware
 app.use(helmet());
@@ -65,6 +68,9 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/badges', badgeRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/recommendations', recommendationRoutes);
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -93,6 +99,8 @@ app.get('/', (req, res) => {
       badges: '/api/badges',
       profile: '/api/profile',
       recommendations: '/api/recommendations',
+      upload: '/api/upload',
+      chat: '/api/chat',
       health: '/api/health',
     },
   });

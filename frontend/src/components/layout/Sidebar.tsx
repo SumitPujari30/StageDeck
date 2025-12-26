@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/utils/cn';
 import {
@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/Avatar';
-import { Button } from '@/components/ui/Button';
+
 import { getInitials } from '@/utils/format';
 
 /**
@@ -127,7 +127,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <Avatar className={cn(
                 isCollapsed ? 'w-10 h-10' : 'w-12 h-12'
               )}>
-                <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}`} />
+                <AvatarImage src={user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}`} />
                 <AvatarFallback>{getInitials(user?.name || 'User')}</AvatarFallback>
               </Avatar>
               

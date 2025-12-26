@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import authService, { User, AuthResponse } from '@/services/auth.service';
+import authService, { User } from '@/services/auth.service';
 import type { 
   UserLoginInput, 
   UserRegisterInput, 
@@ -18,11 +18,13 @@ interface AuthContextType {
   isLoading: boolean;
   login: (data: UserLoginInput) => Promise<void>;
   loginAdmin: (data: AdminLoginInput) => Promise<void>;
-  register: (data: UserRegisterInput) => Promise<void>;
+  register: (data: UserRegisterInput) => Promise<{ needsVerification: boolean; email?: string }>;
   registerAdmin: (data: AdminRegisterInput) => Promise<{ needsOTP: boolean }>;
   verifyAdminOTP: (email: string, otp: string) => Promise<void>;
+  verifyUserOTP: (email: string, otp: string) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
+  updateUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -75,7 +77,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   
   const register = async (data: UserRegisterInput) => {
     const response = await authService.registerUser(data);
+    // Check if OTP verification is needed
+    if ((response as any).needsVerification) {
+      return { needsVerification: true, email: (response as any).email || data.email };
+    }
     setUser(response.user);
+    return { needsVerification: false };
   };
   
   const registerAdmin = async (data: AdminRegisterInput) => {
@@ -100,6 +107,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
   
+  const verifyUserOTP = async (email: string, otp: string) => {
+    const response = await authService.verifyUserOTP(email, otp);
+    setUser(response.user);
+  };
+  
   const logout = () => {
     authService.logout();
     setUser(null);
@@ -113,6 +125,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       logout();
     }
   };
+
+  const updateUser = (userData: User) => {
+    setUser(userData);
+    // Update local storage with the correct key (USER_KEY = 'stagedeck_user')
+    const token = authService.getToken();
+    if (token) {
+      localStorage.setItem('stagedeck_user', JSON.stringify(userData));
+    }
+  };
   
   const value: AuthContextType = {
     user,
@@ -124,8 +145,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     registerAdmin,
     verifyAdminOTP,
+    verifyUserOTP,
     logout,
     refreshUser,
+    updateUser,
   };
   
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

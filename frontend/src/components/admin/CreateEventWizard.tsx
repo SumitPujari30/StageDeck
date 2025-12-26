@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   ArrowLeft,
@@ -18,7 +18,7 @@ import {
   Image as ImageIcon,
   Check,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
@@ -73,7 +73,7 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ onClose, o
     handleSubmit,
     watch,
     setValue,
-    control,
+
     formState: { errors },
   } = useForm<EventInput>({
     resolver: zodResolver(eventSchema),
@@ -168,7 +168,7 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ onClose, o
         isFeatured,
       };
 
-      const newEvent = await eventsService.createEvent(eventData);
+      await eventsService.createEvent(eventData);
 
       // Clear draft
       localStorage.removeItem('eventDraft');

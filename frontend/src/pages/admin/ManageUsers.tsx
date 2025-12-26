@@ -5,33 +5,22 @@ import {
   UserPlus,
   Eye,
   Ban,
-  ShieldCheck,
   Mail,
   Phone,
-  Calendar,
-  Trash2,
   RefreshCw,
   Users as UsersIcon,
+  CheckCircle,
+  XCircle,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
-import { Skeleton, SkeletonTable } from '@/components/ui/Skeleton';
+import { SkeletonTable } from '@/components/ui/Skeleton';
 import { Modal, ModalContent, ModalHeader, ModalTitle, ModalFooter } from '@/components/ui/Modal';
-import api from '@/services/api';
+import userService, { User } from '@/services/user.service';
 import { formatDate } from '@/utils/format';
 import { cn } from '@/utils/cn';
-
-interface User {
-  _id: string;
-  name: string;
-  email: string;
-  role: 'user' | 'admin' | 'organizer';
-  phone?: string;
-  createdAt: string;
-  isActive: boolean;
-}
 
 export const ManageUsers: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -64,36 +53,8 @@ export const ManageUsers: React.FC = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      // Mock data - Replace with actual API call
-      const mockUsers: User[] = [
-        {
-          _id: '1',
-          name: 'John Doe',
-          email: 'john@example.com',
-          role: 'user',
-          phone: '+1234567890',
-          createdAt: new Date().toISOString(),
-          isActive: true,
-        },
-        {
-          _id: '2',
-          name: 'Jane Smith',
-          email: 'jane@example.com',
-          role: 'organizer',
-          phone: '+1234567891',
-          createdAt: new Date().toISOString(),
-          isActive: true,
-        },
-        {
-          _id: '3',
-          name: 'Admin User',
-          email: 'admin@example.com',
-          role: 'admin',
-          createdAt: new Date().toISOString(),
-          isActive: true,
-        },
-      ];
-      setUsers(mockUsers);
+      const data = await userService.getAllUsers();
+      setUsers(data);
     } catch (error) {
       console.error('Failed to fetch users:', error);
     } finally {
@@ -176,6 +137,34 @@ export const ManageUsers: React.FC = () => {
       alert('Failed to add organizer. Please try again.');
     } finally {
       setAddingOrganizer(false);
+    }
+  };
+
+  const handleApproveReject = async (userId: string, status: 'approved' | 'rejected') => {
+    try {
+      await userService.updateApprovalStatus(userId, status);
+      // Update local state
+      setUsers(users.map(u => 
+        u._id === userId ? { ...u, approvalStatus: status } : u
+      ));
+      alert(`User ${status === 'approved' ? 'approved' : 'rejected'} successfully!`);
+    } catch (error) {
+      console.error(`Failed to ${status} user:`, error);
+      alert(`Failed to ${status} user. Please try again.`);
+    }
+  };
+
+  const handleToggleStatus = async (userId: string) => {
+    try {
+      await userService.toggleUserStatus(userId);
+      // Update local state
+      setUsers(users.map(u => 
+        u._id === userId ? { ...u, isActive: !u.isActive } : u
+      ));
+      alert('User status updated successfully!');
+    } catch (error) {
+      console.error('Failed to toggle user status:', error);
+      alert('Failed to update user status. Please try again.');
     }
   };
 
@@ -340,12 +329,38 @@ export const ManageUsers: React.FC = () => {
                         {formatDate(user.createdAt)}
                       </td>
                       <td className="px-6 py-4">
-                        <Badge variant={user.isActive ? 'success' : 'destructive'}>
-                          {user.isActive ? 'Active' : 'Inactive'}
-                        </Badge>
+                        {user.approvalStatus === 'pending' ? (
+                          <Badge variant="warning">Pending</Badge>
+                        ) : user.approvalStatus === 'approved' ? (
+                          <Badge variant="success">Approved</Badge>
+                        ) : (
+                          <Badge variant="destructive">Rejected</Badge>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex gap-2">
+                          {user.approvalStatus === 'pending' && (
+                            <>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                className="text-green-600 hover:text-green-700"
+                                onClick={() => handleApproveReject(user._id, 'approved')}
+                                title="Approve User"
+                              >
+                                <CheckCircle className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700"
+                                onClick={() => handleApproveReject(user._id, 'rejected')}
+                                title="Reject User"
+                              >
+                                <XCircle className="w-4 h-4" />
+                              </Button>
+                            </>
+                          )}
                           <Button variant="ghost" size="sm" title="View Details">
                             <Eye className="w-4 h-4" />
                           </Button>
@@ -354,7 +369,8 @@ export const ManageUsers: React.FC = () => {
                               variant="ghost"
                               size="sm"
                               className="text-red-600 hover:text-red-700"
-                              title="Ban User"
+                              onClick={() => handleToggleStatus(user._id)}
+                              title={user.approvalStatus === 'approved' ? 'Deactivate User' : 'Activate User'}
                             >
                               <Ban className="w-4 h-4" />
                             </Button>

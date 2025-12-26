@@ -53,7 +53,14 @@ const Toast = React.forwardRef<React.ElementRef<typeof ToastPrimitive.Root>, Toa
           className
         )}
         {...props}
-      />
+      >
+        <div className="flex gap-3">
+          {Icon && <Icon className={cn("w-5 h-5 mt-0.5 shrink-0", config.iconColor)} />}
+          <div className="flex-1">
+            {props.children}
+          </div>
+        </div>
+      </ToastPrimitive.Root>
     );
   }
 );

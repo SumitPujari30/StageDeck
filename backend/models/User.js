@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'admin'],
+      enum: ['user', 'admin', 'organizer'],
       default: 'user',
     },
     isVerified: {
@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema(
     approvalStatus: {
       type: String,
       enum: ['pending', 'approved', 'rejected'],
-      default: 'pending', // New users need admin approval
+      default: 'approved', // Auto-approve users on registration
     },
     approvedBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -65,6 +65,9 @@ const userSchema = new mongoose.Schema(
     },
     profileImage: {
       type: String,
+    },
+    avatar: {
+      type: String, // Base64 encoded profile image
     },
     interests: [{
       type: String,
@@ -122,11 +125,11 @@ userSchema.methods.verifyOTP = async function (enteredOTP) {
   if (!this.otp || !this.otpExpire) {
     return false;
   }
-  
+
   if (Date.now() > this.otpExpire) {
     return false; // OTP expired
   }
-  
+
   return await bcrypt.compare(enteredOTP, this.otp);
 };
 
