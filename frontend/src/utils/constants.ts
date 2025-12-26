@@ -3,7 +3,10 @@
  */
 
 // API Configuration
-const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? '' : 'http://localhost:5000');
+const envBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+// In production, use empty string for relative URLs unless a real domain is provided
+const isLocalhost = envBaseUrl.includes('localhost') || envBaseUrl.includes('127.0.0.1');
+const rawBaseUrl = import.meta.env.PROD && isLocalhost ? '' : envBaseUrl || (import.meta.env.PROD ? '' : 'http://localhost:5000');
 // Remove trailing slash and /api to prevent double prefixes
 export const API_BASE_URL = rawBaseUrl.replace(/\/$/, '').replace(/\/api$/, '');
 export const API_TIMEOUT = 30000; // 30 seconds
