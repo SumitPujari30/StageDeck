@@ -5,10 +5,18 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const uploadsDir = path.join(__dirname, '..', 'uploads');
 
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+// Use /tmp in serverless environments (Vercel has read-only filesystem)
+const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
+const uploadsDir = isServerless ? '/tmp/uploads' : path.join(__dirname, '..', 'uploads');
+
+// Try to create uploads directory, but don't fail if it can't be created
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+} catch (err) {
+  console.log('Could not create uploads directory:', err.message);
 }
 
 const storage = multer.diskStorage({
