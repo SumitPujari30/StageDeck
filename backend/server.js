@@ -33,8 +33,16 @@ const __dirname = path.dirname(__filename);
 // Static assets
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Connect to database
-connectDB();
+// Ensure database connection before handling requests (critical for serverless)
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('Database connection failed:', error.message);
+    res.status(500).json({ success: false, message: 'Database connection failed' });
+  }
+});
 
 // Body parser middleware with increased limit for base64 images
 app.use(express.json({ limit: '50mb' }));
