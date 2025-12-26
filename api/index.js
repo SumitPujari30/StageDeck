@@ -1,5 +1,16 @@
 // Vercel Serverless Function Handler
-import app from '../backend/server.js';
+// Using dynamic import because backend uses ES modules ("type": "module")
 
-// Export the Express app as a Vercel serverless function
-export default app;
+let appPromise = null;
+
+async function getApp() {
+    if (!appPromise) {
+        appPromise = import('../backend/server.js').then(m => m.default);
+    }
+    return appPromise;
+}
+
+export default async function handler(req, res) {
+    const app = await getApp();
+    return app(req, res);
+}
