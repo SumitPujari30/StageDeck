@@ -19,7 +19,7 @@ export const UserRegister: React.FC = () => {
   const navigate = useNavigate();
   const { register: registerUser } = useAuth();
   const [error, setError] = useState('');
-  
+
   const {
     register,
     handleSubmit,
@@ -28,15 +28,15 @@ export const UserRegister: React.FC = () => {
   } = useForm<UserRegisterInput>({
     resolver: zodResolver(userRegisterSchema),
   });
-  
+
   const password = watch('password', '');
   const passwordStrength = calculatePasswordStrength(password);
-  
+
   const onSubmit = async (data: UserRegisterInput) => {
     try {
       setError('');
       const result = await registerUser(data);
-      
+
       // Check if OTP verification is needed
       if (result.needsVerification) {
         // Navigate to OTP verification page with email
@@ -51,7 +51,7 @@ export const UserRegister: React.FC = () => {
       setError(err.message || 'Registration failed');
     }
   };
-  
+
   const passwordRequirements = [
     { met: password.length >= 12, text: 'At least 12 characters' },
     { met: /[A-Z]/.test(password), text: 'One uppercase letter' },
@@ -59,7 +59,7 @@ export const UserRegister: React.FC = () => {
     { met: /[0-9]/.test(password), text: 'One number' },
     { met: /[!@#$%^&*(),.?":{}|<>]/.test(password), text: 'One special character' },
   ];
-  
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-secondary-50 p-4">
       <motion.div
@@ -78,7 +78,7 @@ export const UserRegister: React.FC = () => {
               Join StageDeck to discover and book amazing events
             </CardDescription>
           </CardHeader>
-          
+
           <form onSubmit={handleSubmit(onSubmit)}>
             <CardContent className="space-y-4">
               {error && (
@@ -86,7 +86,7 @@ export const UserRegister: React.FC = () => {
                   {error}
                 </div>
               )}
-              
+
               <Input
                 {...register('name')}
                 label="Full Name"
@@ -94,7 +94,7 @@ export const UserRegister: React.FC = () => {
                 leftIcon={<User className="w-4 h-4" />}
                 error={errors.name?.message}
               />
-              
+
               <Input
                 {...register('email')}
                 type="email"
@@ -103,7 +103,7 @@ export const UserRegister: React.FC = () => {
                 leftIcon={<Mail className="w-4 h-4" />}
                 error={errors.email?.message}
               />
-              
+
               <div>
                 <Input
                   {...register('password')}
@@ -112,8 +112,9 @@ export const UserRegister: React.FC = () => {
                   placeholder="Create a strong password"
                   leftIcon={<Lock className="w-4 h-4" />}
                   error={errors.password?.message}
+                  autoComplete="new-password"
                 />
-                
+
                 {password && (
                   <div className="mt-2 space-y-2">
                     {/* Password strength meter */}
@@ -125,9 +126,9 @@ export const UserRegister: React.FC = () => {
                             'h-1 flex-1 rounded-full transition-colors',
                             level <= passwordStrength.score
                               ? passwordStrength.color === 'red' ? 'bg-red-500'
-                              : passwordStrength.color === 'orange' ? 'bg-orange-500'
-                              : passwordStrength.color === 'yellow' ? 'bg-yellow-500'
-                              : 'bg-green-500'
+                                : passwordStrength.color === 'orange' ? 'bg-orange-500'
+                                  : passwordStrength.color === 'yellow' ? 'bg-yellow-500'
+                                    : 'bg-green-500'
                               : 'bg-gray-200'
                           )}
                         />
@@ -136,13 +137,13 @@ export const UserRegister: React.FC = () => {
                     <p className={cn(
                       'text-xs font-medium',
                       passwordStrength.color === 'red' ? 'text-red-600'
-                      : passwordStrength.color === 'orange' ? 'text-orange-600'
-                      : passwordStrength.color === 'yellow' ? 'text-yellow-600'
-                      : 'text-green-600'
+                        : passwordStrength.color === 'orange' ? 'text-orange-600'
+                          : passwordStrength.color === 'yellow' ? 'text-yellow-600'
+                            : 'text-green-600'
                     )}>
                       Password strength: {passwordStrength.label}
                     </p>
-                    
+
                     {/* Requirements checklist */}
                     <div className="space-y-1">
                       {passwordRequirements.map((req, index) => (
@@ -161,7 +162,7 @@ export const UserRegister: React.FC = () => {
                   </div>
                 )}
               </div>
-              
+
               <Input
                 {...register('confirmPassword')}
                 type="password"
@@ -169,8 +170,9 @@ export const UserRegister: React.FC = () => {
                 placeholder="Re-enter your password"
                 leftIcon={<Lock className="w-4 h-4" />}
                 error={errors.confirmPassword?.message}
+                autoComplete="new-password"
               />
-              
+
               <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
@@ -189,7 +191,7 @@ export const UserRegister: React.FC = () => {
                 </span>
               </label>
             </CardContent>
-            
+
             <CardFooter className="flex flex-col space-y-4">
               <Button
                 type="submit"
@@ -200,7 +202,7 @@ export const UserRegister: React.FC = () => {
               >
                 Create Account
               </Button>
-              
+
               <div className="text-center text-sm text-gray-600">
                 Already have an account?{' '}
                 <Link
