@@ -50,10 +50,27 @@ app.use((req, res, next) => {
 });
 
 
-// CORS
+// CORS - Support multiple origins for different deployments
+const allowedOrigins = [
+  process.env.CORS_ORIGIN,
+  'https://stage-deck.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: 'https://stage-deck.vercel.app',
+    origin: function (origin, callback) {
+      // Allow requests with no origin (mobile apps, curl, etc.)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log(`CORS blocked origin: ${origin}`);
+        callback(null, false);
+      }
+    },
     credentials: true,
   })
 );
@@ -135,11 +152,14 @@ app.use((req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-// Export app for Vercel
+// Export app for Vercel/serverless
 export default app;
 
-// Only listen if run directly (not imported as a module)
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+// Start server for Render/traditional hosting
+// Check if this file is being run directly (not imported as a module)
+const isMainModule = process.argv[1] && process.argv[1].includes('server.js');
+
+if (isMainModule || process.env.RENDER) {
   const server = app.listen(PORT, () => {
     console.log(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
   });
