@@ -11,6 +11,6 @@
         "install-all": "npm install"
     },
     "engines": {
-        "node": "18.x"
+        "node": ">=18.0.0"
     }
 }
