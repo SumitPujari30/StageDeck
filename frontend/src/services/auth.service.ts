@@ -38,6 +38,8 @@ export interface OTPResponse {
   success: boolean;
   message: string;
   verified?: boolean;
+  token?: string;
+  user?: User;
 }
 
 class AuthService {

@@ -19,15 +19,15 @@ export const AdminVerifyOTP: React.FC = () => {
   const [error, setError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
-  
+
   const email = location.state?.email || '';
-  
+
   useEffect(() => {
     if (!email) {
       navigate('/auth/admin/register');
       return;
     }
-    
+
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -37,41 +37,50 @@ export const AdminVerifyOTP: React.FC = () => {
         return prev - 1;
       });
     }, 1000);
-    
+
     return () => clearInterval(timer);
   }, [email, navigate]);
-  
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
-  
+
   const handleVerify = async () => {
     if (otp.length !== 6) {
       setError('Please enter a valid 6-digit OTP');
       return;
     }
-    
+
     try {
       setError('');
       setIsVerifying(true);
-      
+
       // Verify OTP
       const response = await authService.verifyAdminOTP(email, otp);
-      
-      if (response.verified) {
-        // Get the pending admin data
-        const pendingData = sessionStorage.getItem('pendingAdminData');
-        if (pendingData) {
-          // const adminData = JSON.parse(pendingData);
-          // Complete registration (in a real app, this would be another API call)
-          // For now, redirect to login
-          sessionStorage.removeItem('pendingAdminData');
+
+      // Backend returns { success: true, token, user, message }
+      if (response.success || response.token) {
+        // Clear pending data
+        sessionStorage.removeItem('pendingAdminData');
+
+        // Store token and user if returned (auto-login)
+        if (response.token) {
+          localStorage.setItem('stagedeck_token', response.token);
+          if (response.user) {
+            localStorage.setItem('stagedeck_user', JSON.stringify(response.user));
+          }
+          // Redirect to admin dashboard
+          navigate('/admin/dashboard');
+        } else {
+          // Redirect to login with success message
           navigate('/auth/admin/login', {
             state: { message: 'Admin account created successfully! Please login.' }
           });
         }
+      } else {
+        setError(response.message || 'Verification failed');
       }
     } catch (err: any) {
       setError(err.message || 'Invalid OTP');
@@ -79,7 +88,7 @@ export const AdminVerifyOTP: React.FC = () => {
       setIsVerifying(false);
     }
   };
-  
+
   const handleResend = async () => {
     try {
       setError('');
@@ -94,7 +103,7 @@ export const AdminVerifyOTP: React.FC = () => {
       setError(err.message || 'Failed to resend OTP');
     }
   };
-  
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-pink-50 p-4">
       <motion.div
@@ -113,7 +122,7 @@ export const AdminVerifyOTP: React.FC = () => {
               Enter the 6-digit code sent to the admin email
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent className="space-y-6">
             {/* Email display */}
             <div className="p-4 rounded-xl bg-purple-50 border border-purple-200 text-center">
@@ -122,13 +131,13 @@ export const AdminVerifyOTP: React.FC = () => {
                 ADMIN
               </p>
             </div>
-            
+
             {error && (
               <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm text-center">
                 {error}
               </div>
             )}
-            
+
             {/* OTP Input */}
             <div className="flex justify-center">
               <OTPInput
@@ -138,7 +147,7 @@ export const AdminVerifyOTP: React.FC = () => {
                 error={error ? ' ' : undefined}
               />
             </div>
-            
+
             {/* Timer */}
             <div className="text-center">
               {timeLeft > 0 ? (
@@ -154,7 +163,7 @@ export const AdminVerifyOTP: React.FC = () => {
                 </p>
               )}
             </div>
-            
+
             {/* Actions */}
             <div className="space-y-3">
               <Button
@@ -167,7 +176,7 @@ export const AdminVerifyOTP: React.FC = () => {
               >
                 Verify & Create Account
               </Button>
-              
+
               <Button
                 onClick={handleResend}
                 variant="outline"
@@ -177,7 +186,7 @@ export const AdminVerifyOTP: React.FC = () => {
               >
                 Resend OTP
               </Button>
-              
+
               <Button
                 onClick={() => navigate('/auth/admin/register')}
                 variant="ghost"
@@ -187,7 +196,7 @@ export const AdminVerifyOTP: React.FC = () => {
                 Back to Registration
               </Button>
             </div>
-            
+
             {/* Info */}
             <div className="text-center">
               <p className="text-xs text-gray-500">
