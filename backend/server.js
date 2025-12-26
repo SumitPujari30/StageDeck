@@ -43,6 +43,13 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // Security middleware
 app.use(helmet());
 
+// Debug logging for Vercel
+app.use((req, res, next) => {
+  console.log(`[Request] ${req.method} ${req.url}`);
+  next();
+});
+
+
 // CORS
 app.use(
   cors({
@@ -87,6 +94,12 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// Test route
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'API is working' });
+});
+
 
 // Root route
 app.get('/', (req, res) => {

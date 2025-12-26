@@ -1,0 +1,16 @@
+{
+    "name": "stagedeck-monorepo",
+    "version": "1.0.0",
+    "private": true,
+    "workspaces": [
+        "frontend",
+        "backend"
+    ],
+    "scripts": {
+        "build": "echo 'Building...'",
+        "install-all": "npm install"
+    },
+    "engines": {
+        "node": "18.x"
+    }
+}
