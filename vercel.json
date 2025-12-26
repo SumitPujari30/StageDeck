@@ -1,12 +1,13 @@
 {
     "version": 2,
     "framework": null,
-    "installCommand": "npm install --prefix frontend",
+    "installCommand": "npm install --prefix frontend && npm install --prefix backend",
     "buildCommand": "npm run build --prefix frontend",
     "outputDirectory": "frontend/dist",
     "functions": {
         "api/**/*.js": {
-            "runtime": "@vercel/node@3"
+            "runtime": "@vercel/node@3",
+            "includeFiles": "backend/**"
         }
     },
     "rewrites": [
