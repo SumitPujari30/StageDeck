@@ -1,0 +1,12 @@
+# Global .gitignore for StageDeck
+
+# Environment Variables (ALWAYS IGNORE)
+.env
+.env.*
+*.env
+**/.env
+**/.env.*
+
+# Dependencies
+node_modules/
+**/node_modules/
