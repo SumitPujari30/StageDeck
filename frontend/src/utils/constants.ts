@@ -3,7 +3,9 @@
  */
 
 // API Configuration
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? '' : 'http://localhost:5000');
+const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? '' : 'http://localhost:5000');
+// Remove trailing slash and /api to prevent double prefixes
+export const API_BASE_URL = rawBaseUrl.replace(/\/$/, '').replace(/\/api$/, '');
 export const API_TIMEOUT = 30000; // 30 seconds
 
 // Admin Configuration

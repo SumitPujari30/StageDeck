@@ -53,11 +53,7 @@ app.use((req, res, next) => {
 // CORS
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-      callback(null, true);
-    },
+    origin: 'https://stage-deck.vercel.app',
     credentials: true,
   })
 );
