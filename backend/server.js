@@ -46,10 +46,17 @@ app.use(helmet());
 // CORS
 app.use(
   cors({
-    origin: '*', // Allow all origins for Vercel deployment (or set specific Vercel URL)
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      callback(null, true);
+    },
     credentials: true,
   })
 );
+
+// Enable pre-flight requests for all routes
+app.options('*', cors());
 
 // Logging middleware
 if (process.env.NODE_ENV === 'development') {
