@@ -3,8 +3,12 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
+  define: {
+    // Set API base URL based on build mode
+    '__API_BASE_URL__': JSON.stringify(mode === 'production' ? '' : 'http://localhost:5000'),
+  },
   build: {
     outDir: 'dist',
   },
@@ -22,4 +26,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))

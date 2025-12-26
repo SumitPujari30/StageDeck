@@ -5,19 +5,17 @@ import { API_TIMEOUT, TOKEN_KEY } from '@/utils/constants';
  * API client configuration
  */
 
-// Determine base URL - always use relative URLs in production (Vercel)
-const getBaseURL = (): string => {
-  // In production, use empty string for relative URLs (same-origin API)
-  if (import.meta.env.PROD) {
-    return '';
-  }
-  // In development, use localhost
-  return 'http://localhost:5000';
-};
+// Declare the global defined by Vite at build time
+declare const __API_BASE_URL__: string;
+
+// API base URL is set at build time by Vite
+// In production: empty string (relative URLs for same-origin API)
+// In development: http://localhost:5000
+const API_BASE_URL = __API_BASE_URL__;
 
 // Create axios instance
 const api: AxiosInstance = axios.create({
-  baseURL: getBaseURL(),
+  baseURL: API_BASE_URL,
   timeout: API_TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
