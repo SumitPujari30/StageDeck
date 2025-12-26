@@ -3,7 +3,7 @@
  */
 
 // API Configuration
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
 export const API_TIMEOUT = 30000; // 30 seconds
 
 // Admin Configuration
@@ -22,20 +22,20 @@ export const ROUTES = {
   FEATURES: '/features',
   PUBLIC_EVENTS: '/events',
   PUBLIC_EVENT_DETAIL: '/events/:id',
-  
+
   // Auth routes
   USER_REGISTER: '/auth/user/register',
   USER_LOGIN: '/auth/user/login',
   ADMIN_REGISTER: '/auth/admin/register',
   ADMIN_LOGIN: '/auth/admin/login',
-  
+
   // User routes
   USER_DASHBOARD: '/user/dashboard',
   USER_EVENTS: '/user/events',
   USER_EVENT_DETAIL: '/user/events/:id',
   USER_BOOKINGS: '/user/bookings',
   USER_PROFILE: '/user/profile',
-  
+
   // Admin routes
   ADMIN_DASHBOARD: '/admin/dashboard',
   ADMIN_EVENTS: '/admin/events',
