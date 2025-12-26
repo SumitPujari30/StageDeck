@@ -7,8 +7,10 @@
         "backend"
     ],
     "scripts": {
-        "build": "echo 'Building...'",
-        "install-all": "npm install"
+        "build": "npm run build --workspace=frontend",
+        "install-all": "npm install",
+        "vercel-install": "npm install --workspace=frontend && npm install --workspace=backend",
+        "vercel-build": "npm run build --workspace=frontend"
     },
     "engines": {
         "node": ">=18.0.0"
